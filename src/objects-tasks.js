@@ -346,32 +346,127 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  res: '',
+
+  hasElement: false,
+  hasId: false,
+  hasClass: false,
+  hasAttr: false,
+  hasPseudoClass: false,
+  hasPseudoElement: false,
+
+  element(value) {
+    if (this.hasElement)
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    if (
+      this.hasId ||
+      this.hasClass ||
+      this.hasAttr ||
+      this.hasPseudoClass ||
+      this.hasPseudoElement
+    )
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += value;
+    obj.hasElement = true;
+
+    return obj;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.hasId)
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    if (
+      this.hasClass ||
+      this.hasAttr ||
+      this.hasPseudoClass ||
+      this.hasPseudoElement
+    )
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += `#${value}`;
+    obj.hasId = true;
+
+    return obj;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.hasAttr || this.hasPseudoClass || this.hasPseudoElement)
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += `.${value}`;
+    obj.hasClass = true;
+
+    return obj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.hasPseudoClass || this.hasPseudoElement)
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += `[${value}]`;
+    obj.hasAttr = true;
+
+    return obj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.hasPseudoElement)
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += `:${value}`;
+    obj.hasPseudoClass = true;
+
+    return obj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.hasPseudoElement)
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res += `::${value}`;
+    obj.hasPseudoElement = true;
+
+    return obj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const obj = {};
+    Object.assign(obj, this);
+    obj.res = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return obj;
+  },
+
+  stringify() {
+    return this.res;
   },
 };
 
